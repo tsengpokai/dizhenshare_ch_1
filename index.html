@@ -1,490 +1,799 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高等地震學探究 | 地球透視導航員</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高等地震學探究｜Chapter 1 互動式學習網頁</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-200">
-    <div id="root"></div>
+<body class="bg-slate-950 text-slate-100">
+  <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+  <script type="text/babel">
+    const { useMemo, useState, useEffect } = React;
 
-        // 獨立建立原生 SVG 圖示元件替代 lucide-react，確保無痛佈署
-        const Icon = ({ name, className }) => {
-            const icons = {
-                ChevronRight: <polyline points="9 18 15 12 9 6" />,
-                Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
-                Globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
-                Map: <><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></>,
-                Zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />,
-                Database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
-                AlertTriangle: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
-                ShieldAlert: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
-                Waves: <><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.6 2 5 2 2.3 0 2.3-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.3 0 2.3-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.3 0 2.3-2 5-2 1.3 0 1.9.5 2.5 1"/></>,
-                Target: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
-                CheckCircle2: <><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></>
-            };
-            return (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                    {icons[name]}
-                </svg>
-            );
-        };
+    const RAW = {
+      f111: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232325.png",
+      f112: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232333.png",
+      f113: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232354.png",
+      f114: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232405.png",
+      f115: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232420.png",
+      f123: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232638.png",
+      f125: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232657.png",
+      f126: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-09%20232705.png",
+      f1214: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-10%20154329.png",
+      f1215: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-10%20154340.png",
+      f1216: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-10%20154350.png",
+      f1218: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-10%20154408.png",
+      f1219: "https://raw.githubusercontent.com/tsengpokai/dizhenshare_ch_1/main/%E8%9E%A2%E5%B9%95%E6%93%B7%E5%8F%96%E7%95%AB%E9%9D%A2%202026-03-10%20154416.png",
+    };
 
-        const LightbulbIcon = (props) => (
-            <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>
+    const Icon = ({ name, className = "w-5 h-5" }) => {
+      const icons = {
+        ChevronRight: <polyline points="9 18 15 12 9 6" />,
+        Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
+        Globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+        Map: <><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></>,
+        Zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />,
+        Database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
+        AlertTriangle: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+        ShieldAlert: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+        Waves: <><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.6 2 5 2 2.3 0 2.3-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.3 0 2.3-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.3 0 2.3-2 5-2 1.3 0 1.9.5 2.5 1"/></>,
+        Target: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
+        CheckCircle2: <><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></>,
+        BookOpen: <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
+        Layers: <><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></>,
+      };
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          {icons[name]}
+        </svg>
+      );
+    };
+
+    const LightbulbIcon = (props) => (
+      <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/>
+        <path d="M9 18h6"/>
+        <path d="M10 22h4"/>
+      </svg>
+    );
+
+    const SectionTitle = ({ index, title, icon }) => (
+      <div className="flex items-center gap-3 mb-5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 border border-cyan-400/20 shadow-[0_0_20px_rgba(34,211,238,0.08)]">
+          {icon}
+        </div>
+        <div>
+          <div className="text-xs uppercase tracking-[0.35em] text-cyan-400/70">Topic {index}</div>
+          <h2 className="text-2xl md:text-3xl font-bold text-white">{title}</h2>
+        </div>
+      </div>
+    );
+
+    const Card = ({ children, className = "" }) => (
+      <div className={`rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-sm shadow-2xl ${className}`}>{children}</div>
+    );
+
+    const FigureCard = ({ title, src, caption }) => (
+      <Card className="overflow-hidden">
+        <div className="border-b border-slate-800 px-5 py-4 flex items-center justify-between gap-3">
+          <h4 className="font-semibold text-white">{title}</h4>
+          <span className="text-[11px] uppercase tracking-[0.25em] text-slate-400">Figure Study</span>
+        </div>
+        <div className="bg-slate-950 p-3">
+          <img src={src} alt={title} className="w-full rounded-2xl border border-slate-800" />
+        </div>
+        <div className="px-5 pb-5 text-slate-300 leading-7 text-[15px]">{caption}</div>
+      </Card>
+    );
+
+    const Bullet = ({ title, text }) => (
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+        <div className="font-semibold text-cyan-300 mb-2">{title}</div>
+        <div className="text-slate-300 leading-7 text-[15px]">{text}</div>
+      </div>
+    );
+
+    const conceptTopics = [
+      {
+        id: 1, icon: <Icon name="Activity" className="w-5 h-5" />, title: "斯內爾定律與折射射線",
+        question: "斯內爾定律如何決定地震波在地球內部分層中的幾何傳播？",
+        answer: "因為射線參數 p = sin i / v 在分層介質中近似守恆，所以當深部波速增加時，入射角會跟著調整，波線就會逐步彎曲而不是走直線。",
+        explanation: "地球越深通常壓力越大、剛性越高，P、S 波速常隨深度增加。波要維持相位連續，就必須在每一個介面依據 Snell’s law 改變方向。因此地震射線常呈現向上彎回地表的曲線。這不只是幾何問題，也直接決定 travel-time curve、陰影區、震相識別與地球內部速度反演。",
+        example: "把光從空氣打進水裡會折射；地震波從低速層進入高速層時，也會調整方向。只是地球不是單一平面介面，而是很多速度漸變層，所以最後呈現連續彎曲。",
+        svgType: "snell"
+      },
+      {
+        id: 2, icon: <Icon name="Waves" className="w-5 h-5" />, title: "P 波、S 波與物質運動",
+        question: "P 波與 S 波的本質差異是什麼？為什麼 S 波不能穿過外核？",
+        answer: "P 波是壓縮波，粒子運動方向與波前進方向平行；S 波是剪力波，粒子運動方向與波前進方向垂直。液態外核沒有足夠的剪力模量，所以不能支撐 S 波傳播。",
+        explanation: "P 波速度與體積模量、剪力模量、密度都相關；S 波速度則直接依賴剪力模量。當介質是液體時，剪力模量近似為零，因此 S 波速度趨近零。這也是推論外核為液態的重要證據之一。",
+        example: "彈簧前後推拉像 P 波，繩子上下抖動像 S 波。把繩子換成一盆水，橫向剪切訊號很難傳下去，這就是液體不支撐 S 波的直觀想像。",
+        svgType: "waves"
+      },
+      {
+        id: 3, icon: <Icon name="Globe" className="w-5 h-5" />, title: "陰影區與液態外核",
+        question: "只靠地表測站，為什麼能推論地球有液態外核？",
+        answer: "因為全球地震紀錄顯示明確的 P 波與 S 波陰影區：S 波在遠距角完全消失，P 波則在特定角距大幅削弱。這表示地震波在核幔邊界遭遇了性質截然不同的介質。",
+        explanation: "S 波穿不過外核，會形成大範圍陰影；P 波雖能穿越液體，但會在進入低速液態外核時強烈折射，所以在某些角距也會變得很弱。這是古登堡不連續面的經典證據。",
+        example: "很像做 X 光掃描，並不是直接看到內部，而是從哪些地方收不到某類訊號，倒推出裡面有一層物性截然不同的材料。",
+        svgType: "shadow"
+      },
+      {
+        id: 4, icon: <Icon name="Target" className="w-5 h-5" />, title: "震源機制與沙灘球",
+        question: "沙灘球圖到底在表達什麼？",
+        answer: "它把不同測站記錄到的 P 波初動壓縮／張裂方向投影到下半球，藉此表現斷層滑動時的受力象限與斷層幾何。",
+        explanation: "黑白象限不是裝飾，而是震源輻射方向圖。透過壓縮象限與張裂象限的分布，可以辨別正斷層、逆斷層、走滑斷層，並估算 nodal plane 的方位。",
+        example: "如果把一顆橡膠球往某一對方向擠壓、另一對方向拉開，球面不同區域會對外呈現不同形變。沙灘球就是這種空間變形的簡化投影。",
+        svgType: "beachball"
+      },
+      {
+        id: 5, icon: <Icon name="AlertTriangle" className="w-5 h-5" />, title: "共振與建築反應",
+        question: "為什麼某些高度的建築在同一次地震中受損特別重？",
+        answer: "因為建築物有自己的自然週期，若與地震波主頻帶接近，就會發生共振，位移與加速度放大。",
+        explanation: "低樓層通常對高頻短週期震動敏感；中高樓則較容易放大長週期成分。場址效應、盆地效應與結構阻尼都會改變實際反應，因此同區域不同高度建築可能呈現選擇性損害。",
+        example: "推鞦韆時，只要推的節奏剛好對上自然週期，振幅就會越來越大；建築在地震中的共振也是類似概念。",
+        svgType: "resonance"
+      },
+      {
+        id: 6, icon: <Icon name="Activity" className="w-5 h-5" />, title: "地震預報、預測與地震空白區",
+        question: "什麼是 seismic gap？它在長期預報中扮演什麼角色？",
+        answer: "seismic gap 是活躍斷層或板塊邊界上，周圍已破裂、但某一段長時間未發生大地震的區段。它常被視為可能累積較多 slip deficit 的候選危險段。",
+        explanation: "不過 seismic gap 並不等於『一定快要地震』。它較像一種長期判讀工具，必須與歷史地震、GPS 形變、板塊速率、斷層鎖定狀態一起判讀。",
+        example: "像一條被拉緊的拉鍊，兩端已經鬆開，中間還卡住。卡住那段看起來最緊，但什麼時候鬆脫、怎麼鬆脫，仍不容易精準預測。",
+        svgType: "seismicgap"
+      },
+      {
+        id: 7, icon: <Icon name="Database" className="w-5 h-5" />, title: "逆問題與非唯一性",
+        question: "為什麼地下構造成像常有非唯一解？",
+        answer: "因為地表可量到的資料有限、含雜訊、覆蓋不均；多個地下模型可能都能產生相近的地震觀測。",
+        explanation: "這是 inverse problem 的核心困難。走時層析、波形反演、接收函數、反射地震剖面都需要正則化與先驗假設，所以結果通常是『最合理模型』而不是唯一真相。",
+        example: "只看影子猜立體物體形狀時，球、柱、圓盤都有可能投出相同輪廓。地下成像也常有這種資訊不足的情況。",
+        svgType: "inverse"
+      },
+      {
+        id: 8, icon: <Icon name="Map" className="w-5 h-5" />, title: "深源地震與隱沒帶",
+        question: "為什麼深部高溫環境下還會有深源地震？",
+        answer: "因為隱沒板塊把低溫岩石圈快速帶入深部，板塊內部仍可能保有相對較冷、較脆或發生相變不穩定的區域。",
+        explanation: "深源地震多沿 Wadati–Benioff zone 分布。它們提醒我們：深部不是簡單的『太熱所以完全不能破裂』，而是要考慮冷板塊、脫水作用、相變與複雜應力場。",
+        example: "像把冰塊快速丟進熱湯中，外面很熱，但冰塊核心短時間還是冷的。隱沒板塊也有類似的熱傳遞延遲現象。",
+        svgType: "subduction"
+      },
+      {
+        id: 9, icon: <Icon name="Zap" className="w-5 h-5" />, title: "反射地震學與資源探勘",
+        question: "反射地震法為什麼能描出地下構造？",
+        answer: "因為聲阻抗不同的介面會反射部分地震能量，接收多道波形後可重建反射界面位置與形狀。",
+        explanation: "這是石油天然氣探勘、盆地分析與地層解釋的核心工具。實務上還要經過 CMP stacking、deconvolution、migration 等資料處理，才能把原始波形變成可判讀剖面。",
+        example: "像蝙蝠靠回音定位，地球物理學家則靠地下回波重建地層輪廓。",
+        svgType: "reflection"
+      },
+      {
+        id: 10, icon: <Icon name="ShieldAlert" className="w-5 h-5" />, title: "核試爆監測",
+        question: "怎麼從地震訊號分辨天然地震與地下核爆？",
+        answer: "爆炸源通常產生很強的 P 波而較弱的表面波；天然地震則因斷層剪切滑動，常伴隨較顯著的 S 波與表面波。",
+        explanation: "因此可用 mb、Ms、波形形狀、輻射型態、事件位置與多站比對來辨識。核爆監測不是只看一條波形，而是全球網路、多參數綜合判讀。",
+        example: "地震比較像『沿斷層錯動』，核爆比較像『瞬間向外撐開』，兩者的能量分配模式不同。",
+        svgType: "nuclear"
+      }
+    ];
+
+    function renderSVG(type) {
+      switch (type) {
+        case "snell":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <rect x="0" y="0" width="220" height="80" fill="#172554" />
+              <rect x="0" y="80" width="220" height="80" fill="#0f172a" />
+              <line x1="0" y1="80" x2="220" y2="80" stroke="#64748b" strokeWidth="2" strokeDasharray="5 5"/>
+              <text x="12" y="18" fill="#93c5fd" fontSize="10">低速層</text>
+              <text x="12" y="148" fill="#67e8f9" fontSize="10">高速層</text>
+              <line x1="40" y1="10" x2="110" y2="80" stroke="#38bdf8" strokeWidth="3"/>
+              <line x1="110" y1="80" x2="200" y2="120" stroke="#f59e0b" strokeWidth="3"/>
+              <line x1="110" y1="20" x2="110" y2="140" stroke="#cbd5e1" strokeDasharray="3 4"/>
+              <circle r="4" fill="#f43f5e"><animateMotion dur="2.4s" repeatCount="indefinite" path="M 40 10 L 110 80 L 200 120"/></circle>
             </svg>
-        );
+          );
+        case "waves":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <text x="12" y="18" fill="#7dd3fc" fontSize="11">P-wave：粒子前後壓縮</text>
+              {[...Array(12)].map((_, i) => <line key={i} x1={18+i*16} y1="38" x2={18+i*16} y2="74" stroke="#38bdf8" strokeWidth="3" className="wave-p" style={{animationDelay:`${i*0.08}s`}} />)}
+              <text x="12" y="98" fill="#fbbf24" fontSize="11">S-wave：粒子上下剪切</text>
+              {[...Array(12)].map((_, i) => <circle key={i} cx={20+i*16} cy="128" r="4" fill="#f59e0b" className="wave-s" style={{animationDelay:`${i*0.08}s`}}/>)}
+            </svg>
+          );
+        case "shadow":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <circle cx="110" cy="80" r="56" fill="#082f49" stroke="#7dd3fc" strokeWidth="2"/>
+              <circle cx="110" cy="80" r="28" fill="#ef4444" opacity="0.8"/>
+              <text x="95" y="84" fill="#fff" fontSize="9">外核</text>
+              <circle cx="110" cy="22" r="4" fill="#fde68a" className="pulse-dot"/>
+              <path d="M110 22 Q 160 48 162 98" fill="none" stroke="#38bdf8" strokeWidth="2"/>
+              <path d="M110 22 Q 60 48 58 98" fill="none" stroke="#38bdf8" strokeWidth="2"/>
+              <path d="M48 105 A 66 66 0 0 0 84 142" fill="none" stroke="#fb7185" strokeWidth="4" opacity="0.5"/>
+              <path d="M172 105 A 66 66 0 0 1 136 142" fill="none" stroke="#fb7185" strokeWidth="4" opacity="0.5"/>
+              <text x="12" y="122" fill="#fda4af" fontSize="10">陰影區</text>
+            </svg>
+          );
+        case "beachball":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <g transform="translate(60,80)">
+                <circle cx="0" cy="0" r="32" fill="#0f172a" stroke="#fff"/>
+                <path d="M-22 -22 C -4 -8 -4 8 -22 22 A32 32 0 0 1 -22 -22 Z" fill="#fff"/>
+                <path d="M22 -22 C 4 -8 4 8 22 22 A32 32 0 0 0 22 -22 Z" fill="#fff"/>
+              </g>
+              <g transform="translate(160,80)">
+                <circle cx="0" cy="0" r="32" fill="#fff" stroke="#fff"/>
+                <path d="M-22 -22 C -4 -8 -4 8 -22 22 A32 32 0 0 1 -22 -22 Z" fill="#0f172a"/>
+                <path d="M22 -22 C 4 -8 4 8 22 22 A32 32 0 0 0 22 -22 Z" fill="#0f172a"/>
+              </g>
+              <text x="32" y="132" fill="#cbd5e1" fontSize="10">正斷層</text>
+              <text x="132" y="132" fill="#cbd5e1" fontSize="10">逆斷層</text>
+            </svg>
+          );
+        case "resonance":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <line x1="0" y1="136" x2="220" y2="136" stroke="#64748b" strokeWidth="4"/>
+              <path d="M0 140 Q20 148 40 140 T80 140 T120 140 T160 140 T220 140" fill="none" stroke="#fbbf24" strokeWidth="2" className="wave-travel"/>
+              <rect x="26" y="104" width="20" height="32" fill="#475569" className="sway-small" style={{transformOrigin:'36px 136px'}}/>
+              <rect x="96" y="70" width="24" height="66" fill="#ef4444" className="sway-large" style={{transformOrigin:'108px 136px'}}/>
+              <rect x="172" y="28" width="20" height="108" fill="#475569" className="sway-small" style={{transformOrigin:'182px 136px', animationDelay:'0.4s'}}/>
+              <text x="74" y="16" fill="#fca5a5" fontSize="11">中樓層最容易放大</text>
+            </svg>
+          );
+        case "seismicgap":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <rect x="20" y="64" width="180" height="30" fill="#0f172a" stroke="#475569"/>
+              <line x1="20" y1="79" x2="200" y2="79" stroke="#ef4444" strokeWidth="2" strokeDasharray="5 4"/>
+              <rect x="25" y="44" width="40" height="18" fill="#10b981" opacity="0.35"/>
+              <rect x="154" y="44" width="40" height="18" fill="#10b981" opacity="0.35"/>
+              <rect x="82" y="64" width="56" height="30" fill="#ef4444" opacity="0.4" className="pulse-gap"/>
+              <text x="88" y="54" fill="#fca5a5" fontSize="11">gap</text>
+              <text x="29" y="56" fill="#d1fae5" fontSize="8">已破裂</text>
+              <text x="158" y="56" fill="#d1fae5" fontSize="8">已破裂</text>
+            </svg>
+          );
+        case "inverse":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <line x1="20" y1="132" x2="200" y2="132" stroke="#94a3b8"/>
+              <line x1="20" y1="132" x2="20" y2="20" stroke="#94a3b8"/>
+              <circle cx="56" cy="92" r="4" fill="#fff"/>
+              <circle cx="104" cy="70" r="4" fill="#fff"/>
+              <circle cx="160" cy="42" r="4" fill="#fff"/>
+              <path d="M20 112 Q90 82 200 22" fill="none" stroke="#38bdf8" strokeWidth="2" className="draw-path"/>
+              <path d="M20 120 Q56 98 104 70 T200 18" fill="none" stroke="#22c55e" strokeWidth="2" strokeDasharray="4 4" className="draw-path" style={{animationDelay:'0.8s'}}/>
+              <path d="M20 98 C60 105, 110 48, 160 42 S185 28 200 26" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="3 3" className="draw-path" style={{animationDelay:'1.6s'}}/>
+            </svg>
+          );
+        case "subduction":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <path d="M86 40 L220 40 L220 160 L124 160 Z" fill="#334155"/>
+              <path d="M0 40 L76 40 L150 150 L70 150 Z" fill="#1d4ed8" className="plate-slide"/>
+              <rect x="0" y="20" width="84" height="20" fill="#0284c7" opacity="0.55"/>
+              {[72,84,96,108,120,132].map((y, i)=> <circle key={i} cx={72+i*10} cy={48+i*14} r={i%2?3:4} fill="#f97316" className="pulse-dot" style={{animationDelay:`${i*0.3}s`}} />)}
+              <text x="10" y="16" fill="#bae6fd" fontSize="10">海洋板塊</text>
+              <text x="152" y="30" fill="#cbd5e1" fontSize="10">大陸板塊</text>
+            </svg>
+          );
+        case "reflection":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <rect x="0" y="58" width="220" height="30" fill="#334155"/>
+              <path d="M0 88 Q110 58 220 88 L220 160 L0 160 Z" fill="#0f172a"/>
+              <rect x="18" y="42" width="18" height="10" fill="#cbd5e1"/>
+              <circle cx="27" cy="58" r="4" fill="#ef4444" className="pulse-dot"/>
+              {[0,1,2,3,4].map(i => <rect key={i} x={58+i*26} y="52" width="5" height="5" fill="#10b981"/>) }
+              <path d="M27 58 L108 74 L162 54" fill="none" stroke="#fde68a" strokeWidth="1.5" strokeDasharray="2 2" className="draw-path"/>
+              <path d="M27 58 L108 74 L136 54" fill="none" stroke="#fde68a" strokeWidth="1.5" strokeDasharray="2 2" className="draw-path" style={{animationDelay:'0.3s'}}/>
+            </svg>
+          );
+        case "nuclear":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <text x="10" y="18" fill="#4ade80" fontSize="10">天然地震：表面波較顯著</text>
+              <path d="M10 42 L28 42 L31 36 L34 46 L38 30 L42 52 L46 42 L60 42 Q84 20 96 60 T135 44 T168 52 T210 42" fill="none" stroke="#22c55e" strokeWidth="1.6"/>
+              <text x="10" y="92" fill="#f87171" fontSize="10">地下核爆：初始 P 波更突出</text>
+              <path d="M10 120 L28 120 L31 14 L35 145 L38 78 L42 132 L46 120 L68 120 Q80 116 94 124 T130 120 L210 120" fill="none" stroke="#ef4444" strokeWidth="1.6"/>
+            </svg>
+          );
+        case "hazardrisk":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <circle cx="62" cy="78" r="34" fill="#7f1d1d" opacity="0.9"/>
+              <circle cx="112" cy="78" r="34" fill="#0f766e" opacity="0.9"/>
+              <circle cx="87" cy="78" r="34" fill="#f59e0b" opacity="0.85"/>
+              <text x="34" y="82" fill="#fff" fontSize="10">Hazard</text>
+              <text x="104" y="82" fill="#fff" fontSize="10">Exposure</text>
+              <text x="70" y="132" fill="#fde68a" fontSize="12" fontWeight="700">Risk</text>
+            </svg>
+          );
+        case "attenuation":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <line x1="18" y1="136" x2="205" y2="136" stroke="#94a3b8"/>
+              <line x1="18" y1="136" x2="18" y2="18" stroke="#94a3b8"/>
+              <path d="M20 26 Q70 58 110 86 T200 118" fill="none" stroke="#38bdf8" strokeWidth="3"/>
+              <path d="M20 50 Q70 76 110 98 T200 126" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 4"/>
+              <text x="112" y="48" fill="#7dd3fc" fontSize="10">幾何擴散 + 吸收</text>
+              <text x="96" y="144" fill="#cbd5e1" fontSize="9">距離 r</text>
+            </svg>
+          );
+        case "liquefaction":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <rect x="0" y="0" width="220" height="48" fill="#1e293b"/>
+              <rect x="0" y="48" width="220" height="112" fill="#b45309" opacity="0.65"/>
+              {[...Array(10)].map((_,i)=><circle key={i} cx={20+i*18} cy={82+(i%3)*18} r="7" fill="#fde68a" opacity="0.7" />)}
+              {[...Array(8)].map((_,i)=><circle key={i} cx={28+i*22} cy={112+(i%2)*16} r="5" fill="#60a5fa" className="bubble-rise" style={{animationDelay:`${i*0.3}s`}} />)}
+              <rect x="92" y="18" width="28" height="30" fill="#94a3b8" className="sink-box"/>
+              <text x="130" y="28" fill="#e2e8f0" fontSize="10">孔隙水壓上升</text>
+            </svg>
+          );
+        case "forecast":
+          return (
+            <svg viewBox="0 0 220 160" className="w-full h-full">
+              <rect x="18" y="22" width="184" height="24" rx="12" fill="#0f172a" stroke="#334155"/>
+              <rect x="18" y="66" width="184" height="24" rx="12" fill="#0f172a" stroke="#334155"/>
+              <rect x="18" y="110" width="184" height="24" rx="12" fill="#0f172a" stroke="#334155"/>
+              <rect x="18" y="22" width="122" height="24" rx="12" fill="#0891b2" opacity="0.9"/>
+              <rect x="18" y="66" width="70" height="24" rx="12" fill="#f59e0b" opacity="0.9"/>
+              <rect x="18" y="110" width="38" height="24" rx="12" fill="#ef4444" opacity="0.95"/>
+              <text x="28" y="38" fill="#fff" fontSize="10">預報：未來 30 年機率 25%</text>
+              <text x="28" y="82" fill="#fff" fontSize="10">短期異常：訊號仍不穩定</text>
+              <text x="28" y="126" fill="#fff" fontSize="10">精準預測：最困難</text>
+            </svg>
+          );
+        default:
+          return null;
+      }
+    }
 
-        const SeismologyApp = () => {
-            const [activeTopic, setActiveTopic] = useState(0);
-            const [showAnswer, setShowAnswer] = useState(false);
+    const figures112 = [
+      {
+        title: '圖 1.1-1 地震實驗的基本幾何',
+        src: RAW.f111,
+        caption: '這張圖把地震學最核心的流程濃縮成 source → medium → receiver → seismogram。重點不是只有「有地震波」，而是要把起震時間、介質傳播時間與到站紀錄串成可解釋的物理鏈。讀圖時可以先看左下的震源，再看中間介質，最後對照右上地震圖。地震學許多反演工作，都是從最後的 seismogram 反推前面的 source 與 medium。'
+      },
+      {
+        title: '圖 1.1-2 射線路徑為何彎曲',
+        src: RAW.f112,
+        caption: '這張圖示範地震波在地球內部不是筆直前進，而會因速度隨深度增加而逐漸彎曲。它其實就是 Snell 定律在球形地球中的表現。越深部波速越快，射線就越傾向往高速區偏折，之後再向地表回彎，所以遠方測站仍能收到深部穿行的震相。'
+      },
+      {
+        title: '圖 1.1-3 多種震相與其路徑',
+        src: RAW.f113,
+        caption: '左圖是實際地震圖，右圖是各震相的路徑解釋。P、pP、PP、S、SS、ScS、Rayleigh 等名稱不是背代號而已，而是在告訴你波走了哪條路、經過哪些界面、是否反射、是否在地表傳播。這類對照圖非常重要，因為它讓地震圖不再只是雜亂曲線，而是可解碼的訊號。'
+      },
+      {
+        title: '圖 1.1-4 深源地震與核心反射',
+        src: RAW.f114,
+        caption: '這張圖展示深源地震可產生多次 ScS 類核心反射震相。當地震源很深、記錄品質好時，地震圖上會出現一系列在時間上分開的回波。這些回波能幫助估計核幔邊界附近的速度與幾何，也說明地震學像是在做一種自然界的大尺度回音測距。'
+      },
+      {
+        title: '圖 1.1-5 反射地震法的概念',
+        src: RAW.f115,
+        caption: '這是勘探地震學最經典的示意圖：人工震源向下發波，不同地層界面把能量反射回來，多個檢波器接收後形成反射紀錄。圖中的 A、B 反射事件對應地下不同層界，透過 travel time、速度模型與資料處理，就能把時間剖面轉成地質構造圖。'
+      }
+    ];
 
-            useEffect(() => {
-                setShowAnswer(false);
-            }, [activeTopic]);
+    const figures125 = [
+      {
+        title: '圖 1.2-3 美國地震 hazard 地圖',
+        src: RAW.f123,
+        caption: '這張圖是 probabilistic seismic hazard map，顯示在特定機率與時間窗下，某地可能遭遇的最大地動強度。它反映的是「地面可能會搖多大」，不是「一定會有多少損失」。圖中西岸 hazard 高，因為板塊邊界活躍；但美國內陸某些區域也不低，說明板內地震雖少，仍可能帶來顯著風險。'
+      },
+      {
+        title: '圖 1.2-5 距離、規模與地動衰減',
+        src: RAW.f125,
+        caption: '這張圖比較不同地區、不同規模地震的 peak acceleration 隨距離衰減情形。重點有兩個：第一，規模越大，近場與中遠場地動通常都更強；第二，東美與西美的衰減型態不同，表示地殼結構與衰減性質會改變同規模地震造成的搖晃。這正是 ground motion model 為什麼必須區域化的原因。'
+      },
+      {
+        title: '圖 1.2-6 不同建材的崩塌曲線',
+        src: RAW.f126,
+        caption: '這張圖用 Modified Mercalli Intensity 對應不同建材的崩塌比例。弱磚造與 adobe 在較低強度就快速受損；木構造通常較能吸收變形；鋼筋混凝土則明顯更耐震，而具有良好抗震設計的鋼筋混凝土表現更好。它直接說明 earthquake risk 不只看地震有多大，也看結構系統有多脆弱。'
+      }
+    ];
 
-            const topics = [
-                {
-                    id: 1, icon: <Icon name="Activity" className="w-5 h-5" />, title: "地震學基礎理論與波動物理",
-                    question: "斯內爾定律 (Snell's Law) 如何決定地震波在地球內部分層介面上的幾何傳播行為？",
-                    answer: "斯內爾定律透過「射線參數 (Ray Parameter, p)」的守恆，決定了波的折射與反射角度，進而導致波在地函中呈弧線傳播。",
-                    explanation: "在地球內部，地震波的傳播受介質密度與彈性模量影響。根據斯內爾定律：p = (sin i) / v = 常數。其中 i 是入射角，v 是該層的地層波速。因為地球內部越深，壓力極大導致波速 v 增加，為了維持參數 p 不變，折射角 i 必須變大。這導致地震波向地表偏折，形成我們觀測到的連續彎曲射線路徑 (Curved ray paths)。",
-                    example: "想像你把一根吸管放進水杯裡，光線從空氣進入水中（波速改變）會折射，吸管看起來像斷了。地震波從地殼進入地函（波速通常從 6 km/s 躍升至 8 km/s），波線會急劇向地表方向彎折，這也是為什麼地震波能傳遞到距離震央幾千公里外的原因。",
-                    svgType: "snell"
-                },
-                {
-                    id: 2, icon: <Icon name="Waves" className="w-5 h-5" />, title: "地震波類型的傳播特性",
-                    question: "P波與S波的質點運動軌跡有何本質上的差異？為什麼S波無法穿透外地核？",
-                    answer: "P波是壓縮波（質點平行於傳播方向運動），S波是剪力波（質點垂直於傳播方向運動）。S波無法穿透液態外地核，因為液體無法承受剪應力。",
-                    explanation: "體波的傳播由岩石的彈性模量決定。P波波速 Vp = √((K + 4/3μ) / ρ)，S波波速 Vs = √(μ / ρ)。其中 K 為體積模量，μ 為剪力模量，ρ 為密度。在液態介質（如外地核）中，液體無法抵抗形變（即剪力模量 μ = 0），因此 Vs 變為零，S波的能量完全被阻擋或轉換。",
-                    example: "想像一個彈簧（P波）：推拉一端，壓縮波會沿著彈簧傳遞。再想像一根繩子（S波）：上下甩動繩子，波動往前傳遞，但繩子的每一點都是上下移動。如果你在水中甩繩子，水流會直接分開，無法將「剪切」的形變傳遞下去，這就是外地核阻擋S波的物理機制。",
-                    svgType: "waves"
-                },
-                {
-                    id: 3, icon: <Icon name="Globe" className="w-5 h-5" />, title: "地球內部構造的透視與成像",
-                    question: "地震學家如何僅靠地表觀測，就能證明地球擁有一個「液態的外地核」？",
-                    answer: "透過觀測地震波的「陰影區 (Shadow Zones)」。強烈地震發生後，地球背對面會出現一個收不到直接P波與S波的廣大環帶。",
-                    explanation: "當地震波穿越地核-地函邊界 (CMB, 約 2890 公里深) 時，因為外地核是液態的，S波無法通過，導致距離震央 103° 以遠的地區完全測不到直達S波，形成巨大的S波陰影區。同時，因為P波進入液態外地核時波速急遽下降（發生強烈折射），在 103° 到 142° 之間形成P波陰影區。這個古登堡不連續面 (Gutenberg Discontinuity) 的發現是地球物理學的里程碑。",
-                    example: "這就像是醫院裡的超音波檢查。醫生將超音波打入人體，遇到不同的器官介面會反射或折射。地震發生就像是地球做了一次超巨大的超音波掃描，而在另一端「看不見」特定波的盲區，就反向證明了內部存在一個性質完全不同的液態球體。",
-                    svgType: "shadow"
-                },
-                {
-                    id: 4, icon: <Icon name="Target" className="w-5 h-5" />, title: "震源機制與地震參數定義",
-                    question: "什麼是斷層面解 (Focal Mechanism) 的「沙灘球 (Beachball)」？它如何幫助我們辨識斷層類型？",
-                    answer: "「沙灘球」是利用 P 波在各個測站初動（第一波）是「壓縮」還是「擴張」，投影在下半球面上形成的圖形，分為四個象限。",
-                    explanation: "當斷層錯動時，會對周圍岩石產生推擠（壓縮）與拉扯（擴張）。我們觀察全球測站記錄到的第一筆 P 波：若波形向上（Up），代表該方向受到推擠壓縮；若向下（Down），代表該方向被拉扯擴張。將這些資料投影在立體網格上，會形成兩個深色（壓縮）和兩個淺色（擴張）交替的象限。正斷層的中心為白色（擴張），逆斷層的中心為深色（壓縮），走移斷層則是十字交叉。",
-                    example: "想像你用雙手夾住一顆氣球然後錯動（滑動）。氣球的某些部位會被擠壓鼓起（對應地震圖上的 P 波向上），某些部位會凹陷（對應 P 波向下）。沙灘球就是這顆氣球受力變形的二維投影快照。",
-                    svgType: "beachball"
-                },
-                {
-                    id: 5, icon: <Icon name="AlertTriangle" className="w-5 h-5" />, title: "地震危害評估與工程應用",
-                    question: "為什麼在某些特定地震中，10層樓的中型公寓倒塌慘重，而旁邊30層的摩天大樓或單層平房卻安然無恙？",
-                    answer: "這是因為「共振效應 (Resonance)」。當地震波的主頻率剛好與建築物的自然週期相符時，會引發極大的共振振幅。",
-                    explanation: "每一棟建築物都有自己的「自然振動週期 (T)」，經驗公式約為 T ≈ 0.1N (N 為樓層數)。10層樓建築的週期約為 1.0 秒。如果傳遞到地表的地震波（特別是經過盆地軟弱土層放大的表面波），其卓越週期剛好也是 1 秒左右，建築物吸收的能量就會疊加，造成劇烈搖晃甚至結構破壞。這稱為結構-土壤互制作用。",
-                    example: "1985 年墨西哥城大地震，震央雖然在 350 公里外，但長週期的地震波傳到墨西哥城（建立在古湖泊軟土上）時，發生了週期約 2 秒的強烈共振。結果導致當地大量 15-25 層樓的建築物倒塌，而較矮或極高的建築物反而倖存。這就像推鞦韆，只有在對的節奏上推，鞦韆才會越盪越高。",
-                    svgType: "resonance"
-                },
-                {
-                    id: 6, icon: <Icon name="Activity" className="w-5 h-5" />, title: "地震預測、預報與週期性研究",
-                    question: "何謂「地震空白區 (Seismic Gap)」假說？它在長期「地震預報 (Forecasting)」中扮演什麼角色？",
-                    answer: "地震空白區是指一條活躍斷層帶上，周圍都已經發生過大地震釋放應力，唯獨某一段長時間未發生錯動的區域。它被視為未來最可能發生大地震的危險區。",
-                    explanation: "板塊構造運動是持續且速率穩定的。根據「彈性回跳理論 (Elastic Rebound Theory)」，斷層兩側的應力會隨著時間穩定累積。如果在板塊邊界上，A段和C段在過去100年內都已經破裂過，但夾在中間的B段卻異常安靜（Locked），這段B就是地震空白區。這意味著B段累積了大量的滑移虧欠 (Slip deficit)，破裂的機率正在急劇攀升。",
-                    example: "想像一條長長的拉鍊，你從兩端用力拉開，但中間有幾齒卡住了（空白區）。隨著你施加的力道越來越大，周圍的布料（地殼）緊繃變形。我們雖然無法「短期預測」卡住的地方哪一分哪一秒會崩開，但可以「長期預報」這個卡住的地方一旦崩開，釋放的能量將非常驚人。",
-                    svgType: "seismicgap"
-                },
-                {
-                    id: 7, icon: <Icon name="Database" className="w-5 h-5" />, title: "逆向問題 (Inverse Problems) 與建模",
-                    question: "為什麼地震學家畫出來的地下三維構造圖（走時層析成像）往往存在「非唯一性 (Non-uniqueness)」？",
-                    answer: "因為我們是在解「逆向問題」。觀測數據（地表地震圖）是有限且包含雜訊的，這導致可能有多個完全不同的地下模型，都能產生相同的觀測結果。",
-                    explanation: "在正向問題中，已知模型（地下岩層分佈）可以算出唯一的結果（地震波抵達時間）。但在逆向問題中，我們只有邊界數據（地表幾百個測站的波達時間）。因為射線覆蓋不均勻（例如海洋底下缺乏測站），加上系統誤差，數學上構成了一個病態矩陣 (Ill-posed problem)。因此，科學家必須加入「正則化 (Regularization)」，如平滑條件，來選出一個「最合理」但不一定是唯一的模型。",
-                    example: "這就像是透過物體的影子來猜測物體的形狀。如果你只看到牆上有一個圓形的影子，它可能是一顆球、一個圓柱體（從底面看）、甚至是一枚硬幣。因為你沒有從四面八方照射光線（測站分佈不均），所以你無法給出唯一的答案。",
-                    svgType: "inverse"
-                },
-                {
-                    id: 8, icon: <Icon name="Map" className="w-5 h-5" />, title: "板塊構造論與全球分布",
-                    question: "既然地函深處的高溫高壓會讓岩石變成塑性流體（無法產生脆性斷裂），為什麼隱沒帶會發生深達 660 公里的「深源地震」？",
-                    answer: "因為隱沒的海洋岩石圈（冷板塊）插入地函的速度極快，熱傳導來不及將其加熱，使得板塊內部在極深處仍保持足以斷裂的脆性或相變不穩定性。",
-                    explanation: "這被稱為「和達-班尼奧夫帶 (Wadati-Benioff Zone)」。海洋板塊在海溝處隱沒時，將地表的低溫帶入深部地函。因為岩石是熱的不良導體，這塊冷板塊的中心核心部分，即使到了 660 公里深處（上下地函交界），溫度依舊低於周圍地函。在這裡，地震的成因可能不再是淺層的摩擦斷層，而是橄欖石向尖晶石結構轉變時引發的「相變誘發斷層 (Transformational Faulting)」。",
-                    example: "想像你把一塊從冷凍庫剛拿出來的長條冰棒迅速插進熱水裡。雖然熱水很燙，但冰棒的核心在短時間內依然是堅硬冰冷的。如果冰棒內部結構因為巨大壓力突然崩塌，就會發出清脆的斷裂聲（深源地震），而不會像熱水一樣只產生緩慢流動。",
-                    svgType: "subduction"
-                },
-                {
-                    id: 9, icon: <Icon name="Zap" className="w-5 h-5" />, title: "資源勘探的商業應用",
-                    question: "石油公司如何利用「反射地震學 (Reflection Seismology)」技術在茫茫大海底下找到油氣儲集層？",
-                    answer: "利用人工震源產生聲波，當波遇到地下不同岩層的「聲波阻抗」差異介面時會產生反射。透過陣列接收器記錄，可以繪製出地下的地層剖面圖。",
-                    explanation: "反射地震學的核心是聲波阻抗 Z = ρv (密度乘上波速)。當震波遇到兩層岩石的阻抗介面時，一部分能量會反射回地表，反射係數 R = (Z2 - Z1) / (Z2 + Z1)。探勘船會拖曳巨大的空氣槍（震源）與長達數公里的水下聽音器陣列（受波器）。藉由強大的電腦處理「同深點 (Common Depth Point, CDP) 疊加」與「偏移 (Migration)」，能將微弱的反射波強化，畫出地下的背斜構造或斷層圈閉，這些都是儲藏油氣的最佳地點。",
-                    example: "這跟蝙蝠的聲納或潛艇尋找目標的原理如出一轍。探勘船就像在海面上大喊一聲，然後仔細聆聽海底回傳的回音。如果回音顯示底下有個像倒扣的碗一樣的岩層結構（背斜圈閉），裡面極有可能就藏著較輕的石油或天然氣。",
-                    svgType: "reflection"
-                },
-                {
-                    id: 10, icon: <Icon name="ShieldAlert" className="w-5 h-5" />, title: "社會安全與核武監控",
-                    question: "當國際監測站收到不明震動信號時，地震學家如何單憑波形特徵，就能鐵口直斷這是「天然地震」還是「地下核武試爆」？",
-                    answer: "主要透過比較「體波規模 (mb)」與「表面波規模 (Ms)」的比值。核爆是純粹的點狀爆炸源，會產生極強的 P 波，但幾乎不產生表面波。",
-                    explanation: "天然地震是斷層兩側的剪切滑動 (Shear faulting)，這種大面積的錯動非常容易激發出沿著地表傳遞、振幅大且持久的表面波 (Ms 高)。相反地，地下核試爆是一個接近完美的等向性膨脹源 (Isotropic source)，能量瞬間向四面八方推擠，因此會產生非常大、非常尖銳的初始 P 波 (mb 高)。如果在一張圖表上畫出 mb 對 Ms 的關係，天然地震與核爆會落在兩個截然不同的群集中，這是執行《全面禁止核試驗條約 (CTBT)》的關鍵科學依據。",
-                    example: "想像你在水池裡實驗：天然地震就像你把一塊木板在水中平移錯動，水面會掀起巨大且連綿的波浪（表面波）。地下核爆則像你在水下點燃一顆小爆竹，會瞬間產生一個擴張的衝擊波（體波），但水面上的漣漪卻相對較小且迅速消散。",
-                    svgType: "nuclear"
-                }
-            ];
+    const moreFigures = {
+      forecast: {
+        title: '圖 1.2-14 hazard map 的假設差異與地震預報',
+        src: RAW.f1214,
+        caption: '這張圖的重點不是單純「哪裡比較危險」，而是要提醒你：hazard map 依賴假設。只要對 recurrence、最大規模、衰減模型或區域地震性採用不同前提，最後的 hazard 圖就可能明顯不同。因此地震預報通常是機率式、區域式與長時間尺度的，不是某日某時某地一定會發震的精準預測。'
+      },
+      gap1: {
+        title: '圖 1.2-15 recurrence 的群聚性與不規則性',
+        src: RAW.f1215,
+        caption: '這張圖用古地震序列顯示 recurrence 並不一定像時鐘一樣等間隔。某些大地震會呈現 cluster，之間再夾長時間安靜期。這說明僅依平均週期推估下一次地震，常會過度簡化斷層行為。'
+      },
+      gap2: {
+        title: '圖 1.2-16 seismic gap 的空間概念',
+        src: RAW.f1216,
+        caption: '這張圖把 San Andreas 不同分段與 gap 標示出來。所謂 seismic gap，並不是「完全沒地震」的地方，而是相對周圍段落而言，在長時間尺度上缺乏預期的大型破裂。它是 long-term forecasting 的線索，不是 short-term prediction 的保證。'
+      },
+      nuk1: {
+        title: '圖 1.2-18 用地震規模估核爆當量',
+        src: RAW.f1218,
+        caption: '這張圖說明 seismology 不只是偵測爆炸有沒有發生，還能用 body-wave magnitude 估算地下核試爆的大致當量。重點在於 mb 與 yield 的經驗轉換要考慮區域地質差異，因為不同地區的衰減特性會影響觀測到的波幅。'
+      },
+      nuk2: {
+        title: '圖 1.2-19 地震與核爆的波形差異',
+        src: RAW.f1219,
+        caption: '這張圖把天然地震與核爆事件的波形放在一起比較。天然地震通常因剪切滑動而有較強表面波；爆炸源則常出現更強的初始 P 波。這種「P 波特別大、表面波相對弱」的特徵，就是核試監測中常用的 discrimination 線索。'
+      }
+    };
 
-            const renderSVG = (type) => {
-                switch (type) {
-                    case "snell":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <rect x="0" y="0" width="200" height="75" fill="#1e293b" />
-                                <rect x="0" y="75" width="200" height="75" fill="#0f172a" />
-                                <line x1="0" y1="75" x2="200" y2="75" stroke="#475569" strokeWidth="2" strokeDasharray="4 4" />
-                                <text x="10" y="20" fill="#94a3b8" fontSize="10">Layer 1: Low Velocity (v1)</text>
-                                <text x="10" y="140" fill="#94a3b8" fontSize="10">Layer 2: High Velocity (v2)</text>
-                                <line x1="40" y1="10" x2="100" y2="75" stroke="#3b82f6" strokeWidth="2" />
-                                <line x1="100" y1="75" x2="180" y2="120" stroke="#f59e0b" strokeWidth="2" />
-                                <line x1="100" y1="30" x2="100" y2="120" stroke="#64748b" strokeWidth="1" strokeDasharray="2 2" />
-                                <path d="M 90 64 A 15 15 0 0 0 100 60" fill="none" stroke="#fff" strokeWidth="1" />
-                                <text x="80" y="60" fill="#fff" fontSize="10">i</text>
-                                <path d="M 100 95 A 20 20 0 0 0 118 85" fill="none" stroke="#fff" strokeWidth="1" />
-                                <text x="110" y="105" fill="#fff" fontSize="10">r</text>
-                                <circle r="3" fill="#ef4444">
-                                    <animateMotion dur="2s" repeatCount="indefinite" path="M 40 10 L 100 75 L 180 120" />
-                                </circle>
-                            </svg>
-                        );
-                    case "waves":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <text x="10" y="20" fill="#94a3b8" fontSize="10">P-wave (Compressional)</text>
-                                <g>
-                                    {[...Array(15)].map((_, i) => (
-                                        <line key={`p-${i}`} x1={10 + i*12} y1="35" x2={10 + i*12} y2="65" stroke="#3b82f6" strokeWidth="2" className="wave-p" style={{ animationDelay: `${i * 0.1}s` }} />
-                                    ))}
-                                </g>
-                                <text x="10" y="90" fill="#94a3b8" fontSize="10">S-wave (Shear)</text>
-                                <g>
-                                    {[...Array(15)].map((_, i) => (
-                                        <circle key={`s-${i}`} cx={10 + i*12} cy="115" r="3" fill="#f59e0b" className="wave-s" style={{ animationDelay: `${i * 0.1}s` }} />
-                                    ))}
-                                </g>
-                            </svg>
-                        );
-                    case "shadow":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <circle cx="100" cy="75" r="60" fill="#1e293b" stroke="#475569" strokeWidth="2" />
-                                <circle cx="100" cy="75" r="32" fill="#ef4444" opacity="0.8" />
-                                <text x="85" y="78" fill="#fff" fontSize="8">Outer Core</text>
-                                <circle cx="100" cy="15" r="4" fill="#fbbf24" className="animate-pulse" />
-                                <text x="88" y="10" fill="#fbbf24" fontSize="8">Focus</text>
-                                <path d="M 100 15 Q 160 50 158 90" fill="none" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2 2" />
-                                <path d="M 100 15 Q 40 50 42 90" fill="none" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2 2" />
-                                <path d="M 100 15 L 120 50 L 115 100 L 130 128" fill="none" stroke="#3b82f6" strokeWidth="1.5" />
-                                <path d="M 100 15 L 80 50 L 85 100 L 70 128" fill="none" stroke="#3b82f6" strokeWidth="1.5" />
-                                <path d="M 40 95 A 65 65 0 0 0 65 130" fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.5" />
-                                <path d="M 160 95 A 65 65 0 0 1 135 130" fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.5" />
-                                <text x="10" y="115" fill="#f59e0b" fontSize="8">Shadow Zone</text>
-                            </svg>
-                        );
-                    case "beachball":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <g transform="translate(50, 75)">
-                                    <circle cx="0" cy="0" r="30" fill="#1e293b" stroke="#fff" strokeWidth="1" />
-                                    <path d="M -20 -22 C -5 -5, -5 5, -20 22 A 30 30 0 0 1 -20 -22 Z" fill="#fff" />
-                                    <path d="M 20 -22 C 5 -5, 5 5, 20 22 A 30 30 0 0 0 20 -22 Z" fill="#fff" />
-                                    <text x="-15" y="45" fill="#94a3b8" fontSize="10">Normal Fault</text>
-                                    <path d="M -10 0 L -30 0 M -10 -5 L -10 5" stroke="#ef4444" strokeWidth="1" />
-                                    <path d="M 10 0 L 30 0 M 10 -5 L 10 5" stroke="#ef4444" strokeWidth="1" />
-                                </g>
-                                <g transform="translate(150, 75)">
-                                    <circle cx="0" cy="0" r="30" fill="#fff" stroke="#fff" strokeWidth="1" />
-                                    <path d="M -20 -22 C -5 -5, -5 5, -20 22 A 30 30 0 0 1 -20 -22 Z" fill="#1e293b" />
-                                    <path d="M 20 -22 C 5 -5, 5 5, 20 22 A 30 30 0 0 0 20 -22 Z" fill="#1e293b" />
-                                    <text x="-15" y="45" fill="#94a3b8" fontSize="10">Thrust Fault</text>
-                                    <path d="M -30 0 L -10 0 M -15 -5 L -10 0 L -15 5" stroke="#3b82f6" strokeWidth="1" fill="none" />
-                                    <path d="M 30 0 L 10 0 M 15 -5 L 10 0 L 15 5" stroke="#3b82f6" strokeWidth="1" fill="none" />
-                                </g>
-                            </svg>
-                        );
-                    case "resonance":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <line x1="0" y1="130" x2="200" y2="130" stroke="#64748b" strokeWidth="4" />
-                                <text x="100" y="145" fill="#94a3b8" fontSize="8" textAnchor="middle">Seismic Wave Frequency ≈ 1.0s</text>
-                                <rect x="30" y="100" width="20" height="30" fill="#334155" stroke="#94a3b8" className="sway-small" style={{transformOrigin: "40px 130px"}} />
-                                <rect x="90" y="60" width="20" height="70" fill="#ef4444" stroke="#fca5a5" className="sway-large" style={{transformOrigin: "100px 130px"}} />
-                                <rect x="150" y="20" width="20" height="110" fill="#334155" stroke="#94a3b8" className="sway-small" style={{transformOrigin: "160px 130px", animationDelay: "0.5s"}} />
-                                <path d="M 0 135 Q 20 145 40 135 T 80 135 T 120 135 T 160 135 T 200 135" fill="none" stroke="#fbbf24" strokeWidth="1" className="wave-travel" />
-                            </svg>
-                        );
-                    case "seismicgap":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <rect x="20" y="60" width="160" height="30" fill="#1e293b" stroke="#334155" />
-                                <line x1="20" y1="75" x2="180" y2="75" stroke="#ef4444" strokeWidth="2" strokeDasharray="5 5" />
-                                <rect x="20" y="40" width="40" height="20" fill="#10b981" opacity="0.3" />
-                                <text x="25" y="52" fill="#10b981" fontSize="8">Ruptured 1990</text>
-                                <rect x="140" y="40" width="40" height="20" fill="#10b981" opacity="0.3" />
-                                <text x="142" y="52" fill="#10b981" fontSize="8">Ruptured 2005</text>
-                                <rect x="70" y="60" width="60" height="30" fill="#ef4444" opacity="0.4" className="pulse-gap" />
-                                <text x="80" y="52" fill="#ef4444" fontSize="10" fontWeight="bold">Seismic Gap</text>
-                                <text x="82" y="95" fill="#fca5a5" fontSize="8">Stress Build-up</text>
-                                <path d="M 100 100 L 100 120 M 95 115 L 100 120 L 105 115" stroke="#ef4444" strokeWidth="2" fill="none" />
-                                <path d="M 100 50 L 100 30 M 95 35 L 100 30 L 105 35" stroke="#ef4444" strokeWidth="2" fill="none" />
-                            </svg>
-                        );
-                    case "inverse":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <line x1="20" y1="130" x2="180" y2="130" stroke="#94a3b8" strokeWidth="1" />
-                                <line x1="20" y1="130" x2="20" y2="20" stroke="#94a3b8" strokeWidth="1" />
-                                <text x="80" y="145" fill="#94a3b8" fontSize="10">Distance (x)</text>
-                                <text x="2" y="80" fill="#94a3b8" fontSize="10" transform="rotate(-90 10,80)">Travel Time</text>
-                                <circle cx="50" cy="90" r="3" fill="#fff" />
-                                <circle cx="90" cy="70" r="3" fill="#fff" />
-                                <circle cx="140" cy="40" r="3" fill="#fff" />
-                                <path d="M 20 110 Q 90 80 180 20" fill="none" stroke="#3b82f6" strokeWidth="2" className="draw-path" />
-                                <path d="M 20 120 Q 50 90 90 70 T 180 10" fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="4 4" className="draw-path" style={{animationDelay: "1s"}} />
-                                <path d="M 20 100 C 50 100, 90 50, 140 40 S 160 30 180 25" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="2 2" className="draw-path" style={{animationDelay: "2s"}} />
-                            </svg>
-                        );
-                    case "subduction":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <path d="M 80 40 L 200 40 L 200 150 L 120 150 Z" fill="#334155" />
-                                <path d="M 0 40 L 70 40 L 140 140 L 70 140 Z" fill="#1e3a8a" className="plate-slide" />
-                                <rect x="0" y="20" width="80" height="20" fill="#0284c7" opacity="0.5" />
-                                <text x="10" y="15" fill="#bae6fd" fontSize="10">Ocean</text>
-                                <text x="140" y="30" fill="#94a3b8" fontSize="10">Continent</text>
-                                <g>
-                                    <circle cx="75" cy="45" r="2" fill="#ef4444" className="animate-ping" />
-                                    <circle cx="85" cy="60" r="3" fill="#ef4444" className="animate-pulse" />
-                                    <circle cx="95" cy="75" r="2" fill="#f59e0b" />
-                                    <circle cx="105" cy="90" r="4" fill="#ef4444" className="animate-ping" style={{animationDelay: "0.5s"}} />
-                                    <circle cx="115" cy="105" r="2" fill="#f59e0b" />
-                                    <circle cx="125" cy="120" r="3" fill="#fbbf24" className="animate-pulse" />
-                                    <circle cx="135" cy="135" r="5" fill="#ef4444" className="animate-ping" style={{animationDelay: "1s"}} />
-                                </g>
-                                <text x="140" y="140" fill="#ef4444" fontSize="8">660km Deep Quake</text>
-                            </svg>
-                        );
-                    case "reflection":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <rect x="0" y="60" width="200" height="30" fill="#334155" />
-                                <path d="M 0 90 Q 100 60 200 90 L 200 150 L 0 150 Z" fill="#1e293b" />
-                                <text x="10" y="140" fill="#f59e0b" fontSize="8">Oil/Gas Trap (Anticline)</text>
-                                <rect x="20" y="45" width="20" height="10" fill="#94a3b8" />
-                                <circle cx="30" cy="60" r="4" fill="#ef4444" className="animate-pulse" />
-                                {[...Array(5)].map((_, i) => (
-                                    <rect key={`rec-${i}`} x={60 + i*20} y="55" width="4" height="4" fill="#10b981" />
-                                ))}
-                                <path d="M 30 60 L 100 75 L 140 55" fill="none" stroke="#fcd34d" strokeWidth="1" strokeDasharray="2 2" className="draw-path" />
-                                <path d="M 30 60 L 100 75 L 120 55" fill="none" stroke="#fcd34d" strokeWidth="1" strokeDasharray="2 2" className="draw-path" style={{animationDelay: "0.2s"}} />
-                                <path d="M 30 60 L 100 75 L 100 55" fill="none" stroke="#fcd34d" strokeWidth="1" strokeDasharray="2 2" className="draw-path" style={{animationDelay: "0.4s"}} />
-                            </svg>
-                        );
-                    case "nuclear":
-                        return (
-                            <svg viewBox="0 0 200 150" className="w-full h-full">
-                                <text x="10" y="20" fill="#10b981" fontSize="10">Natural Earthquake (High Ms, Low mb)</text>
-                                <path d="M 10 40 L 30 40 L 32 35 L 35 45 L 38 30 L 42 50 L 45 40 L 60 40 Q 80 20 90 60 T 120 40 T 150 50 T 180 40 L 190 40" fill="none" stroke="#10b981" strokeWidth="1.5" />
-                                <text x="10" y="90" fill="#ef4444" fontSize="10">Nuclear Explosion (High mb, Low Ms)</text>
-                                <path d="M 10 120 L 30 120 L 32 10 L 35 140 L 38 80 L 42 130 L 45 120 L 60 120 Q 70 115 80 125 T 100 120 L 190 120" fill="none" stroke="#ef4444" strokeWidth="1.5" />
-                                <text x="35" y="145" fill="#94a3b8" fontSize="8" textAnchor="middle">P-wave</text>
-                                <text x="120" y="145" fill="#94a3b8" fontSize="8" textAnchor="middle">Surface Wave</text>
-                                <line x1="35" y1="55" x2="35" y2="135" stroke="#475569" strokeDasharray="2 2" />
-                                <line x1="120" y1="55" x2="120" y2="135" stroke="#475569" strokeDasharray="2 2" />
-                            </svg>
-                        );
-                    default:
-                        return null;
-                }
-            };
+    function IntroTopicExplorer() {
+      const [activeTopic, setActiveTopic] = useState(0);
+      const [showAnswer, setShowAnswer] = useState(false);
+      useEffect(() => setShowAnswer(false), [activeTopic]);
+      const t = conceptTopics[activeTopic];
 
-            return (
-                <div className="min-h-screen bg-slate-950 text-slate-200 font-sans flex flex-col">
-                    <style dangerouslySetInnerHTML={{__html: `
-                        @keyframes wave-p-anim {
-                            0%, 100% { transform: translateX(0); }
-                            50% { transform: translateX(8px); }
-                        }
-                        .wave-p { animation: wave-p-anim 2s infinite ease-in-out; }
-                        
-                        @keyframes wave-s-anim {
-                            0%, 100% { transform: translateY(0); }
-                            50% { transform: translateY(15px); }
-                        }
-                        .wave-s { animation: wave-s-anim 1.5s infinite ease-in-out; }
+      return (
+        <div className="grid lg:grid-cols-[330px_1fr] gap-5">
+          <div className="space-y-2 max-h-[72vh] overflow-auto pr-1 custom-scrollbar">
+            {conceptTopics.map((topic, index) => (
+              <button
+                key={topic.id}
+                onClick={() => setActiveTopic(index)}
+                className={`w-full text-left rounded-2xl border px-4 py-4 transition-all duration-300 flex items-center gap-3 ${activeTopic === index ? 'bg-cyan-500/10 border-cyan-400/40 shadow-[0_0_18px_rgba(34,211,238,0.12)]' : 'bg-slate-900 border-slate-800 hover:bg-slate-800/90 hover:border-slate-700'}`}
+              >
+                <div className={activeTopic === index ? 'text-cyan-300' : 'text-slate-500'}>{topic.icon}</div>
+                <span className={`flex-1 text-sm leading-6 font-medium ${activeTopic === index ? 'text-cyan-50' : 'text-slate-300'}`}>{index + 1}. {topic.title}</span>
+                <Icon name="ChevronRight" className={`w-4 h-4 transition-transform ${activeTopic === index ? 'text-cyan-300 rotate-90' : 'text-slate-600'}`} />
+              </button>
+            ))}
+          </div>
 
-                        @keyframes sway-small-anim {
-                            0%, 100% { transform: rotate(0deg); }
-                            25% { transform: rotate(2deg); }
-                            75% { transform: rotate(-2deg); }
-                        }
-                        .sway-small { animation: sway-small-anim 3s infinite ease-in-out; }
+          <Card className="overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-amber-500"></div>
+            <div className="p-6 md:p-7">
+              <div className="flex items-center gap-3 mb-6 flex-wrap">
+                <span className="rounded-full bg-cyan-500/15 border border-cyan-400/20 px-3 py-1 text-xs font-bold tracking-[0.22em] text-cyan-300">探討主題 {activeTopic + 1}</span>
+                <h3 className="text-2xl font-bold text-white">{t.title}</h3>
+              </div>
 
-                        @keyframes sway-large-anim {
-                            0%, 100% { transform: rotate(0deg); }
-                            25% { transform: rotate(15deg); }
-                            75% { transform: rotate(-15deg); }
-                        }
-                        .sway-large { animation: sway-large-anim 1s infinite ease-in-out; }
+              <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 mb-6 shadow-inner relative overflow-hidden">
+                <div className="absolute top-3 right-3 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-slate-400">Interactive SVG</div>
+                <div className="w-full h-64 md:h-72">{renderSVG(t.svgType)}</div>
+              </div>
 
-                        @keyframes wave-travel-anim {
-                            0% { stroke-dashoffset: 40; }
-                            100% { stroke-dashoffset: 0; }
-                        }
-                        .wave-travel {
-                            stroke-dasharray: 40 40;
-                            animation: wave-travel-anim 1s linear infinite;
-                        }
-
-                        @keyframes pulse-gap-anim {
-                            0%, 100% { opacity: 0.3; }
-                            50% { opacity: 0.7; fill: #b91c1c; }
-                        }
-                        .pulse-gap { animation: pulse-gap-anim 2s infinite; }
-
-                        @keyframes draw-path-anim {
-                            to { stroke-dashoffset: 0; }
-                        }
-                        .draw-path {
-                            stroke-dasharray: 300;
-                            stroke-dashoffset: 300;
-                            animation: draw-path-anim 3s forwards infinite;
-                        }
-
-                        @keyframes plate-slide-anim {
-                            0% { transform: translate(-10px, -10px); }
-                            100% { transform: translate(10px, 10px); }
-                        }
-                        .plate-slide { animation: plate-slide-anim 5s infinite alternate ease-in-out; }
-                    `}} />
-
-                    <header className="bg-slate-900 border-b border-slate-800 p-6 shadow-xl relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-10 pointer-events-none">
-                            <svg preserveAspectRatio="none" className="w-full h-full" viewBox="0 0 1000 100">
-                                <path d="M0 50 L100 50 L110 20 L120 80 L130 50 L200 50 L210 10 L220 90 L230 40 L240 60 L250 50 L1000 50" fill="none" stroke="#3b82f6" strokeWidth="2" />
-                            </svg>
-                        </div>
-                        <div className="max-w-6xl mx-auto relative z-10 flex items-center gap-4">
-                            <div className="bg-blue-600 p-3 rounded-lg">
-                                <Icon name="Activity" className="w-8 h-8 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-white tracking-wide">高等地震學探究 <span className="text-blue-400 text-xl">Chapter 1</span></h1>
-                                <p className="text-slate-400 mt-1">從波動物理到板塊構造，解開地球內部的科學之謎</p>
-                            </div>
-                        </div>
-                    </header>
-
-                    <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 flex flex-col lg:flex-row gap-6">
-                        <div className="w-full lg:w-1/3 flex flex-col gap-2">
-                            <h2 className="text-lg font-semibold text-slate-300 mb-2 px-2 uppercase tracking-wider text-sm">十大探討主題</h2>
-                            <div className="space-y-2 overflow-y-auto max-h-[75vh] pr-2 custom-scrollbar">
-                                {topics.map((topic, index) => (
-                                    <button
-                                        key={topic.id}
-                                        onClick={() => setActiveTopic(index)}
-                                        className={`w-full text-left p-4 rounded-xl transition-all duration-300 flex items-center gap-3 border ${
-                                            activeTopic === index 
-                                            ? 'bg-blue-900/30 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
-                                            : 'bg-slate-900 border-slate-800 hover:bg-slate-800 hover:border-slate-700'
-                                        }`}
-                                    >
-                                        <div className={`${activeTopic === index ? 'text-blue-400' : 'text-slate-500'}`}>
-                                            {topic.icon}
-                                        </div>
-                                        <span className={`flex-1 font-medium leading-tight ${activeTopic === index ? 'text-blue-100' : 'text-slate-400'}`}>
-                                            {index + 1}. {topic.title}
-                                        </span>
-                                        <Icon name="ChevronRight" className={`w-5 h-5 transition-transform ${activeTopic === index ? 'text-blue-500 rotate-90' : 'text-slate-600'}`} />
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="w-full lg:w-2/3 flex flex-col">
-                            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl flex-1 flex flex-col relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-emerald-500 to-amber-500"></div>
-
-                                <div className="flex items-center gap-3 mb-6">
-                                    <span className="bg-blue-900 text-blue-300 px-3 py-1 rounded-full text-sm font-bold tracking-widest">THEME {activeTopic + 1}</span>
-                                    <h2 className="text-2xl font-bold text-white">{topics[activeTopic].title}</h2>
-                                </div>
-
-                                <div className="w-full h-64 bg-slate-950 rounded-xl border border-slate-800 mb-8 p-4 shadow-inner relative group">
-                                    <div className="absolute top-3 right-3 text-xs text-slate-500 uppercase tracking-widest bg-slate-900 px-2 py-1 rounded opacity-50 group-hover:opacity-100 transition-opacity">
-                                        Interactive Concept Visualization
-                                    </div>
-                                    {renderSVG(topics[activeTopic].svgType)}
-                                </div>
-
-                                <div className="flex-1 flex flex-col gap-4">
-                                    <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700">
-                                        <h3 className="text-lg font-semibold text-blue-300 mb-2 flex items-center gap-2">
-                                            <span className="bg-blue-500/20 text-blue-400 w-6 h-6 flex items-center justify-center rounded-md text-sm">Q</span>
-                                            核心提問
-                                        </h3>
-                                        <p className="text-slate-200 text-lg leading-relaxed">{topics[activeTopic].question}</p>
-                                    </div>
-
-                                    {!showAnswer ? (
-                                        <button 
-                                            onClick={() => setShowAnswer(true)}
-                                            className="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
-                                        >
-                                            <Icon name="Activity" className="w-5 h-5 animate-pulse" />
-                                            解析震源機制與答案
-                                        </button>
-                                    ) : (
-                                        <div className="space-y-4 mt-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="bg-emerald-900/20 rounded-xl p-5 border border-emerald-800/50 relative overflow-hidden">
-                                                <div className="absolute -right-4 -top-4 opacity-10"><Icon name="CheckCircle2" className="w-24 h-24 text-emerald-500" /></div>
-                                                <h3 className="text-emerald-400 font-semibold mb-2 flex items-center gap-2">
-                                                    <span className="bg-emerald-500/20 text-emerald-400 w-6 h-6 flex items-center justify-center rounded-md text-sm">A</span>
-                                                    精準解答
-                                                </h3>
-                                                <p className="text-slate-200 leading-relaxed font-medium relative z-10">{topics[activeTopic].answer}</p>
-                                            </div>
-
-                                            <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700">
-                                                <h3 className="text-blue-300 font-semibold mb-2">深入探討物理現象</h3>
-                                                <p className="text-slate-300 leading-relaxed text-sm md:text-base text-justify">
-                                                    {topics[activeTopic].explanation}
-                                                </p>
-                                            </div>
-
-                                            <div className="bg-amber-900/10 rounded-xl p-5 border border-amber-900/30">
-                                                <h3 className="text-amber-400 font-semibold mb-2 flex items-center gap-2">
-                                                    <LightbulbIcon className="w-4 h-4" /> 具象化舉例
-                                                </h3>
-                                                <p className="text-slate-300 leading-relaxed italic text-sm md:text-base">
-                                                    "{topics[activeTopic].example}"
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </main>
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
+                  <div className="mb-2 flex items-center gap-2 text-cyan-300 font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-500/15 text-sm">Q</span>核心提問</div>
+                  <p className="text-lg leading-8 text-slate-100">{t.question}</p>
                 </div>
-            );
-        };
 
-        // 渲染 React 到 DOM
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<SeismologyApp />);
-    </script>
+                {!showAnswer ? (
+                  <button onClick={() => setShowAnswer(true)} className="w-full rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 px-5 py-4 font-bold text-white shadow-lg transition hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2">
+                    <Icon name="Activity" className="w-5 h-5" /> 展開解析
+                  </button>
+                ) : (
+                  <div className="space-y-4 fade-enter">
+                    <div className="rounded-2xl border border-emerald-800/50 bg-emerald-900/20 p-5">
+                      <div className="mb-2 flex items-center gap-2 text-emerald-300 font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/15 text-sm">A</span>精準解答</div>
+                      <p className="leading-8 text-slate-100">{t.answer}</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
+                      <div className="mb-2 text-cyan-300 font-semibold">深入探討</div>
+                      <p className="leading-8 text-slate-300">{t.explanation}</p>
+                    </div>
+                    <div className="rounded-2xl border border-amber-900/40 bg-amber-900/10 p-5">
+                      <div className="mb-2 flex items-center gap-2 text-amber-300 font-semibold"><LightbulbIcon className="w-4 h-4"/>具象化舉例</div>
+                      <p className="leading-8 text-slate-300 italic">「{t.example}」</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    function SectionOne() {
+      return (
+        <div className="space-y-5">
+          <Card className="p-6 md:p-8">
+            <SectionTitle index="01" title="地震學研究範疇" icon={<Icon name="BookOpen" className="w-6 h-6"/>} />
+            <div className="grid md:grid-cols-2 gap-4 text-[15px] leading-8 text-slate-300">
+              <Bullet title="地震學在研究什麼？" text="地震學不只研究地震本身，還研究波如何在地球內部傳播，並利用這些波去反推震源機制、地球內部構造、板塊作用、工程地震風險、勘探成像，甚至核試監測。" />
+              <Bullet title="為什麼它很重要？" text="因為地震波是少數能直接『穿透地球』並帶回內部資訊的自然訊號。你看不到地函或外核，但可以從 travel time、振幅、頻譜與波形差異反推出內部物性。" />
+            </div>
+          </Card>
+          <IntroTopicExplorer />
+        </div>
+      );
+    }
+
+    function App() {
+      const sections = useMemo(() => ([
+        { id: 1, title: '地震學研究範疇', icon: <Icon name="BookOpen" className="w-5 h-5"/> },
+        { id: 2, title: '圖 1.1-1 ～ 1.1-5 說明', icon: <Icon name="Layers" className="w-5 h-5"/> },
+        { id: 3, title: 'Seismic Hazard 與 Seismic Risk', icon: <Icon name="AlertTriangle" className="w-5 h-5"/> },
+        { id: 4, title: '公式 (1) 與能量衰減', icon: <Icon name="Waves" className="w-5 h-5"/> },
+        { id: 5, title: '圖 1.2-3、1.2-5、1.2-6 說明', icon: <Icon name="Map" className="w-5 h-5"/> },
+        { id: 6, title: '建材耐震與不同樓高反應', icon: <Icon name="Activity" className="w-5 h-5"/> },
+        { id: 7, title: '土壤液化的原因', icon: <Icon name="Database" className="w-5 h-5"/> },
+        { id: 8, title: '圖 1.2-14：地震預報與地震預測', icon: <Icon name="Target" className="w-5 h-5"/> },
+        { id: 9, title: 'Seismic Gap 與圖 1.2-15、1.2-16', icon: <Icon name="Globe" className="w-5 h-5"/> },
+        { id: 10, title: '地震預測的方法有哪些？', icon: <Icon name="Zap" className="w-5 h-5"/> },
+        { id: 11, title: '核子試爆監測與圖 1.2-18、1.2-19', icon: <Icon name="ShieldAlert" className="w-5 h-5"/> },
+      ]), []);
+
+      const [activeSection, setActiveSection] = useState(1);
+
+      const renderSection = () => {
+        if (activeSection === 1) return <SectionOne />;
+        if (activeSection === 2) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="02" title="圖 1.1-1、1.1-2、1.1-3、1.1-4、1.1-5 說明" icon={<Icon name="Layers" className="w-6 h-6"/>} />
+              <p className="text-slate-300 leading-8">這一組圖是 Chapter 1 很重要的入門骨架：先從地震學觀測鏈開始，再到射線、震相辨識、深部反射與反射地震法。建議閱讀順序是先理解 source / medium / receiver，再去看地震圖上的不同震相如何對應到不同路徑。</p>
+            </Card>
+            <div className="grid xl:grid-cols-2 gap-5">{figures112.map((f, i) => <FigureCard key={i} {...f} />)}</div>
+          </div>
+        );
+        if (activeSection === 3) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="03" title="Seismic Hazard 與 Seismic Risk 的區別" icon={<Icon name="AlertTriangle" className="w-6 h-6"/>} />
+              <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-inner"><div className="h-64">{renderSVG('hazardrisk')}</div></div>
+                <div className="space-y-4 text-slate-300 leading-8">
+                  <p><span className="text-cyan-300 font-semibold">Hazard</span> 指的是自然現象本身有多強，例如某地未來 50 年內可能遭遇的地動加速度、震度或斷層位移。它回答的是「地會搖多大」。</p>
+                  <p><span className="text-cyan-300 font-semibold">Risk</span> 則是在 hazard 發生時，對人、建築、交通、經濟與社會系統造成多大損失。它回答的是「搖了之後會造成多嚴重的後果」。</p>
+                  <p>所以 hazard 高，不一定 risk 就最高；若人口稀少、建物抗震佳、基礎設施備援足，risk 可能被壓低。反過來說，hazard 中等但人口密集、建築脆弱的都市，risk 反而可能很高。</p>
+                </div>
+              </div>
+            </Card>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Bullet title="Hazard 看什麼？" text="震源位置、規模分布、重現週期、地動衰減、場址放大。" />
+              <Bullet title="Risk 還要加什麼？" text="人口暴露度、建物脆弱度、重要設施與災後恢復能力。" />
+              <Bullet title="一句話記法" text="Hazard 是自然威脅；Risk 是威脅撞上脆弱社會後的實際損失。" />
+            </div>
+          </div>
+        );
+        if (activeSection === 4) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="04" title="公式 (1) 說明：地震波在傳遞中為何衰減？" icon={<Icon name="Waves" className="w-6 h-6"/>} />
+              <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-inner"><div className="h-64">{renderSVG('attenuation')}</div></div>
+                <div className="space-y-4 text-slate-300 leading-8">
+                  <p>教材中的近似式可以寫成 <span className="text-amber-300 font-semibold">a(M, r) = b × 10^(cM) × r^(-d)</span>。這表示某地震規模 <span className="text-cyan-300">M</span> 所造成的地動加速度 <span className="text-cyan-300">a</span>，會隨距離 <span className="text-cyan-300">r</span> 增加而下降。</p>
+                  <p>這種下降不是單一原因，而是多種機制疊加：<span className="text-cyan-300">幾何擴散</span> 讓能量分散到更大面積；<span className="text-cyan-300">內部摩擦／非彈性吸收</span> 會把機械能轉成熱；<span className="text-cyan-300">散射</span> 會把規整波前打散；<span className="text-cyan-300">反射與折射分流</span> 會讓部分能量跑到別的路徑。</p>
+                </div>
+              </div>
+            </Card>
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <Bullet title="1. 幾何擴散" text="像同樣能量的水波向外展開，越遠越稀。球面波尤其明顯。" />
+              <Bullet title="2. 內部吸收" text="真實岩石不是完美彈性體，波經過時部分能量會耗散成熱。" />
+              <Bullet title="3. 散射" text="裂隙、空洞、異質介質會把波能量打到很多方向，主波形變弱。" />
+              <Bullet title="4. 路徑與界面" text="遇到不同介面時，部分能量反射、折射、轉成別的震相。" />
+            </div>
+          </div>
+        );
+        if (activeSection === 5) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="05" title="圖 1.2-3、1.2-5、1.2-6 說明" icon={<Icon name="Map" className="w-6 h-6"/>} />
+              <p className="text-slate-300 leading-8">這三張圖一起看最有效：1.2-3 告訴你 hazard map 在畫什麼，1.2-5 告訴你地動如何隨距離和區域地殼性質改變，1.2-6 則進一步說明同樣地震強度下，不同建材的崩塌率會差很多。</p>
+            </Card>
+            <div className="grid xl:grid-cols-2 gap-5">{figures125.map((f, i) => <FigureCard key={i} {...f} />)}</div>
+          </div>
+        );
+        if (activeSection === 6) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="06" title="不同建材對地震的抵抗能力、地震波對不同高度建築的影響" icon={<Icon name="Activity" className="w-6 h-6"/>} />
+              <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-inner"><div className="h-64">{renderSVG('resonance')}</div></div>
+                <div className="space-y-4 text-slate-300 leading-8">
+                  <p><span className="text-cyan-300 font-semibold">建材差異：</span>弱磚造、土埆厝、adobe 類材料常抗拉抗剪能力不足，地震時容易脆性破壞；木構造相對輕且可容許較大變形；鋼筋混凝土若設計與施工良好，整體耐震能力通常較佳。</p>
+                  <p><span className="text-cyan-300 font-semibold">高度差異：</span>矮建築通常對短週期、高頻震動更敏感；中高樓與高樓則對長週期成分更敏感。若地震波的主週期接近建築自然週期，就可能共振放大。</p>
+                  <p><span className="text-cyan-300 font-semibold">真正關鍵：</span>不是單純「高樓比較危險」或「低樓比較安全」，而是結構型式、阻尼、材料延性、場址條件與地震頻帶是否互相對上。</p>
+                </div>
+              </div>
+            </Card>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Bullet title="建材耐震排序可怎麼理解？" text="通常可粗略理解為：良好抗震設計的鋼筋混凝土 ＞ 一般鋼筋混凝土／韌性木構造 ＞ 磚造、adobe 等脆弱砌體。" />
+              <Bullet title="樓高與週期的直觀記法" text="樓層越高，自然週期通常越長，所以對長週期地震動更敏感。盆地區的大地震常讓較高建築搖得更久。" />
+            </div>
+          </div>
+        );
+        if (activeSection === 7) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="07" title="土壤液化的原因" icon={<Icon name="Database" className="w-6 h-6"/>} />
+              <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-inner"><div className="h-64">{renderSVG('liquefaction')}</div></div>
+                <div className="space-y-4 text-slate-300 leading-8">
+                  <p>液化常發生在<span className="text-cyan-300 font-semibold">鬆散、飽和、顆粒較均一的砂層</span>。當強震快速反覆剪動土層時，顆粒想重新排列，但水來不及排出，孔隙水壓升高，有效應力下降，顆粒之間的接觸力變弱，土層就會暫時失去承載能力。</p>
+                  <p>結果會出現地面沉陷、噴砂、建物傾斜、管線上浮、擋土結構失穩。液化不等於土變成真正液體，而是土顆粒骨架在短時間內失去支撐效果，力學行為看起來像流體。</p>
+                </div>
+              </div>
+            </Card>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Bullet title="必要條件" text="飽和水、鬆散砂層、夠強且夠久的震動。" />
+              <Bullet title="常見地點" text="河口、沖積平原、填海造地、地下水位高的區域。" />
+              <Bullet title="一個直觀例子" text="搖晃裝滿濕沙的盒子，水會往上冒，表面承載力下降。" />
+            </div>
+          </div>
+        );
+        if (activeSection === 8) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="08" title="圖 1.2-14：什麼是地震預報？與地震預測有何不同？" icon={<Icon name="Target" className="w-6 h-6"/>} />
+              <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-inner"><div className="h-64">{renderSVG('forecast')}</div></div>
+                <div className="space-y-4 text-slate-300 leading-8">
+                  <p><span className="text-cyan-300 font-semibold">地震預報（forecasting）</span>是機率式的：在某一區域、某一時間窗內，發生某規模以上地震的機率是多少。它偏向長期風險管理，常被用於 building codes、保險、都市規劃與 hazard map 製作。</p>
+                  <p><span className="text-cyan-300 font-semibold">地震預測（prediction）</span>則更強：希望在較短時間內指出何時、何地、規模多大的地震即將發生。它要求 location、time、size 都更精確，因此困難得多。</p>
+                </div>
+              </div>
+            </Card>
+            <FigureCard {...moreFigures.forecast} />
+            <div className="grid md:grid-cols-2 gap-4">
+              <Bullet title="預報像什麼？" text="『未來 30 年，某斷層段發生 M7 以上地震的機率約 25%』。" />
+              <Bullet title="預測像什麼？" text="『下週三、某地附近會發生 M6.8 地震』。目前這種精準程度尚未可靠實現。" />
+            </div>
+          </div>
+        );
+        if (activeSection === 9) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="09" title="什麼是 Seismic Gap？圖 1.2-15、1.2-16 在說什麼？" icon={<Icon name="Globe" className="w-6 h-6"/>} />
+              <div className="space-y-4 text-slate-300 leading-8">
+                <p><span className="text-cyan-300 font-semibold">Seismic gap</span> 是指某條活躍斷層或板塊邊界上，相對周圍已發生大破裂的區段而言，長時間沒有發生預期大型地震的那一段。它常被用來做長期危險評估，但不是倒數計時器。</p>
+                <p>圖 1.2-15 強調 recurrence 可能群聚、不規則，因此不能只用平均週期線性外推；圖 1.2-16 則把 gap 放到空間分段中理解，說明不同斷層段可能有不同鎖定程度與破裂歷史。</p>
+              </div>
+            </Card>
+            <div className="grid xl:grid-cols-2 gap-5">
+              <FigureCard {...moreFigures.gap1} />
+              <FigureCard {...moreFigures.gap2} />
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Bullet title="為什麼不能太武斷？" text="因為斷層行為不一定週期性，可能有 cluster、aseismic creep 或多段聯動破裂。" />
+              <Bullet title="它有什麼用？" text="可做 long-term forecasting 的候選指標，幫助挑出值得特別注意的區段。" />
+              <Bullet title="一句話結論" text="Seismic gap 是風險線索，不是精準預測的保證。" />
+            </div>
+          </div>
+        );
+        if (activeSection === 10) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="10" title="地震預測的方法有哪些？" icon={<Icon name="Zap" className="w-6 h-6"/>} />
+              <p className="text-slate-300 leading-8 mb-5">目前地震預測沒有單一被普遍接受、穩定可靠的方法。比較常見的是多類訊號監測與統計模型並用，但多數方法仍只能提供有限線索，而非精準預知。</p>
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <Bullet title="1. 歷史地震與重現週期" text="從古地震、歷史地震、活動斷層紀錄估計 recurrence，但常受樣本少與不規則性限制。" />
+                <Bullet title="2. GPS 與地殼形變" text="看斷層鎖定、應變累積、板塊滑移虧損，對長期預報很重要。" />
+                <Bullet title="3. 微震活動與前震" text="有些大震前確實有前震，但很多大震沒有；很多群震最後也不會演變成大震。" />
+                <Bullet title="4. 地下水、氣體、電磁異常" text="曾被大量研究，但可重複性與因果判定仍有爭議。" />
+                <Bullet title="5. 應力轉移與統計模型" text="例如 Coulomb stress、ETAS 類模型，用來評估某區接下來的相對機率變化。" />
+                <Bullet title="6. 即時預警不是預測" text="Early warning 是地震已發生後，利用 P 波先到爭取幾秒到幾十秒反應時間，與預測不同。" />
+              </div>
+            </Card>
+          </div>
+        );
+        if (activeSection === 11) return (
+          <div className="space-y-5">
+            <Card className="p-6 md:p-8">
+              <SectionTitle index="11" title="如何用地震學方法監測核子試爆？圖 1.2-18、1.2-19 說明" icon={<Icon name="ShieldAlert" className="w-6 h-6"/>} />
+              <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
+                <div className="rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-inner"><div className="h-64">{renderSVG('nuclear')}</div></div>
+                <div className="space-y-4 text-slate-300 leading-8">
+                  <p>核試監測的第一步是<span className="text-cyan-300 font-semibold">偵測事件</span>，第二步是<span className="text-cyan-300 font-semibold">辨識事件性質</span>。地震學家會結合全球測站資料，分析到時、波幅、頻譜與震相比例。</p>
+                  <p>地下核爆通常像接近等向性膨脹源，會產生很強的初始 P 波；天然地震則由斷層剪切滑動主導，較容易激發明顯的 S 波與表面波。這就是為什麼 <span className="text-amber-300">mb / Ms</span>、波形形狀與輻射型態可以用來 discrimination。</p>
+                </div>
+              </div>
+            </Card>
+            <div className="grid xl:grid-cols-2 gap-5">
+              <FigureCard {...moreFigures.nuk1} />
+              <FigureCard {...moreFigures.nuk2} />
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Bullet title="監測指標 1：mb 與 yield" text="可用 body-wave magnitude 推估爆炸當量，但要校正區域衰減差異。" />
+              <Bullet title="監測指標 2：P 波 vs 表面波" text="爆炸常 P 波特別大；天然地震通常表面波與剪切成分更突出。" />
+              <Bullet title="監測指標 3：全球網路" text="實務上會結合多站資料與其他系統共同驗證，不靠單一測站下結論。" />
+            </div>
+          </div>
+        );
+        return null;
+      };
+
+      return (
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.14),_transparent_32%),linear-gradient(to_bottom,_#020617,_#020617)] text-slate-100">
+          <style>{`
+            @keyframes wave-p-anim { 0%,100%{transform:translateX(0)} 50%{transform:translateX(8px)} }
+            @keyframes wave-s-anim { 0%,100%{transform:translateY(0)} 50%{transform:translateY(16px)} }
+            @keyframes sway-small-anim { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(2deg)} 75%{transform:rotate(-2deg)} }
+            @keyframes sway-large-anim { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(11deg)} 75%{transform:rotate(-11deg)} }
+            @keyframes wave-travel-anim { 0%{stroke-dashoffset:44} 100%{stroke-dashoffset:0} }
+            @keyframes pulse-gap-anim { 0%,100%{opacity:.3} 50%{opacity:.75} }
+            @keyframes draw-path-anim { to{stroke-dashoffset:0} }
+            @keyframes plate-slide-anim { 0%{transform:translate(-8px,-8px)} 100%{transform:translate(8px,8px)} }
+            @keyframes pulse-dot-anim { 0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(1.35); opacity:.65} }
+            @keyframes bubble-rise-anim { 0%{transform:translateY(0); opacity:.35} 100%{transform:translateY(-24px); opacity:.95} }
+            @keyframes sink-box-anim { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+            @keyframes fadeUp { from {opacity:0; transform:translateY(10px)} to {opacity:1; transform:translateY(0)} }
+            .wave-p { animation: wave-p-anim 2s infinite ease-in-out; }
+            .wave-s { animation: wave-s-anim 1.5s infinite ease-in-out; }
+            .sway-small { animation: sway-small-anim 3s infinite ease-in-out; }
+            .sway-large { animation: sway-large-anim 1.1s infinite ease-in-out; }
+            .wave-travel { stroke-dasharray:44 44; animation: wave-travel-anim 1s linear infinite; }
+            .pulse-gap { animation: pulse-gap-anim 2s infinite ease-in-out; }
+            .draw-path { stroke-dasharray:300; stroke-dashoffset:300; animation: draw-path-anim 3.2s forwards infinite; }
+            .plate-slide { animation: plate-slide-anim 5s infinite alternate ease-in-out; }
+            .pulse-dot { animation: pulse-dot-anim 2s infinite ease-in-out; transform-origin:center; }
+            .bubble-rise { animation: bubble-rise-anim 1.8s infinite alternate ease-in-out; }
+            .sink-box { animation: sink-box-anim 2.3s infinite ease-in-out; }
+            .fade-enter { animation: fadeUp .45s ease-out both; }
+            .custom-scrollbar::-webkit-scrollbar { width: 10px; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71,85,105,.85); border-radius: 999px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15,23,42,.6); border-radius: 999px; }
+          `}</style>
+
+          <header className="relative overflow-hidden border-b border-slate-800 bg-slate-900/85 backdrop-blur-sm">
+            <div className="absolute inset-0 opacity-15 pointer-events-none">
+              <svg preserveAspectRatio="none" className="h-full w-full" viewBox="0 0 1000 140">
+                <path d="M0 70 L120 70 L130 28 L144 112 L158 66 L214 70 L228 20 L244 114 L262 58 L280 84 L300 70 L1000 70" fill="none" stroke="#22d3ee" strokeWidth="2" />
+              </svg>
+            </div>
+            <div className="relative z-10 mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-10">
+              <div className="flex items-center gap-4">
+                <div className="rounded-2xl border border-cyan-400/25 bg-cyan-500/15 p-3 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.10)]">
+                  <Icon name="Activity" className="w-8 h-8" />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-black tracking-wide text-white">高等地震學探究 <span className="text-cyan-300">Chapter 1</span></h1>
+                  <p className="mt-2 text-slate-400 leading-7">互動式問答、圖說、動畫與 SVG 視覺化整合版｜可直接作為 GitHub Pages 的 index.html 使用</p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="mx-auto grid max-w-7xl gap-6 px-4 py-6 md:px-6 lg:grid-cols-[320px_1fr]">
+            <aside className="lg:sticky lg:top-6 h-fit">
+              <Card className="p-4">
+                <div className="mb-4 px-2 text-xs font-bold uppercase tracking-[0.28em] text-slate-400">十一大主題導航</div>
+                <div className="space-y-2 max-h-[78vh] overflow-auto pr-1 custom-scrollbar">
+                  {sections.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setActiveSection(s.id)}
+                      className={`w-full rounded-2xl border px-4 py-4 text-left transition-all duration-300 flex items-center gap-3 ${activeSection === s.id ? 'border-cyan-400/40 bg-cyan-500/10 shadow-[0_0_18px_rgba(34,211,238,0.12)]' : 'border-slate-800 bg-slate-950/40 hover:border-slate-700 hover:bg-slate-800/70'}`}
+                    >
+                      <div className={activeSection === s.id ? 'text-cyan-300' : 'text-slate-500'}>{s.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs mb-1 ${activeSection === s.id ? 'text-cyan-400' : 'text-slate-500'}`}>SECTION {String(s.id).padStart(2,'0')}</div>
+                        <div className={`text-sm leading-6 font-medium ${activeSection === s.id ? 'text-white' : 'text-slate-300'}`}>{s.title}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            </aside>
+
+            <section className="space-y-6">
+              {renderSection()}
+            </section>
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
